@@ -32,7 +32,6 @@ function parseDate(dateStr: string, year: number): Date | null {
   }
 
   // 3. 「M/D」 または 「M-D」 形式
-  // 例: "1/1", "12-31"
   const parts = cleaned.split(/[-/]/);
   if (parts.length === 2) {
     const month = parseInt(parts[0], 10);
@@ -55,7 +54,7 @@ function extractYear(fileName: string): number {
   if (match) {
     return parseInt(match[0], 10);
   }
-  return 2026; // デフォルトは2026年
+  return 2026;
 }
 
 // ─── Header Detection ─────────────────────────────────────────────────
@@ -63,91 +62,196 @@ const DATE_HEADERS = ['日付', 'date', 'Date', 'DATE', '年月日'];
 const BOOK_HEADERS = ['書名', 'book', 'Book', 'BOOK', '書', '聖書箇所'];
 const PASSAGE_HEADERS = ['章節', 'passage', 'Passage', 'PASSAGE', '箇所', '章', '範囲'];
 
-// ─── BIBLE BOOK MAP (略称 -> 新改訳2017正式名称) ──────────────────────
-const BIBLE_BOOK_MAP: Record<string, string> = {
-  // 旧約聖書
-  '創': '創世記',
-  '出': '出エジプト記',
-  'レ': 'レビ記',
-  '民': '民数記',
-  '申': '申命記',
-  'ヨシ': 'ヨシュア記',
-  '士': '士師記',
-  'ルツ': 'ルツ記',
-  'Ⅰサム': 'サムエル記 第一',
-  'Ⅱサム': 'サムエル記 第二',
-  'Ⅰ列': '列王記 第一',
-  'Ⅱ列': '列王記 第二',
-  'Ⅰ歴': '歴代誌 第一',
-  'Ⅱ歴': '歴代誌 第二',
-  'エズ': 'エズラ記',
-  'ネヘ': 'ネヘミヤ記',
-  'エス': 'エステル記',
-  'ヨブ': 'ヨブ記',
-  '詩': '詩篇',
-  '箴': '箴言',
-  '伝道者': '伝道者の書',
-  '雅': '雅歌',
-  'イザ': 'イザヤ書',
-  'エレ': 'エレミヤ書',
-  '哀': '哀歌',
-  'エゼ': 'エゼキエル書',
-  'ダニ': 'ダニエル書',
-  'ホセ': 'ホセア書',
-  'ヨエ': 'ヨエル書',
-  'アモ': 'アモス書',
-  'オバ': 'オバデヤ書',
-  'ヨナ': 'ヨナ書',
-  'ミカ': 'ミカ書',
-  'ナホ': 'ナホム書',
-  'ハバ': 'ハバクク書',
-  'ゼパ': 'ゼパニヤ書',
-  'ハガ': 'ハガイ書',
-  'ゼカ': 'ゼカリヤ書',
-  'マラ': 'マラキ書',
+// ─── BIBLE BOOK MAP (略称・異表記 -> 新改訳2017正式名称) ──────────────
+export const BIBLE_BOOK_MAP: Record<string, string> = {
+  // 旧約聖書（律法・歴史）
+  '創': '創世記', '創世記': '創世記',
+  '出': '出エジプト記', '出エジプト記': '出エジプト記',
+  'レ': 'レビ記', 'レビ記': 'レビ記',
+  '民': '民数記', '民数記': '民数記',
+  '申': '申命記', '申命記': '申命記',
+  'ヨシ': 'ヨシュア記', 'ヨシュア記': 'ヨシュア記',
+  '士': '士師記', '士師記': '士師記',
+  'ルツ': 'ルツ記', 'ルツ記': 'ルツ記',
+  'Ⅰサム': 'サムエル記 第一', 'Ⅱサム': 'サムエル記 第二',
+  'Iサム': 'サムエル記 第一', 'IIサム': 'サムエル記 第二',
+  '1サム': 'サムエル記 第一', '2サム': 'サムエル記 第二',
+  'サムエル記 第一': 'サムエル記 第一', 'サムエル記 第二': 'サムエル記 第二',
+  'サムエル記第一': 'サムエル記 第一', 'サムエル記第二': 'サムエル記 第二',
+  'Ⅰ列': '列王記 第一', 'Ⅱ列': '列王記 第二',
+  'I列': '列王記 第一', 'II列': '列王記 第二',
+  '1列': '列王記 第一', '2列': '列王記 第二',
+  '列王記 第一': '列王記 第一', '列王記 第二': '列王記 第二',
+  '列王記第一': '列王記 第一', '列王記第二': '列王記 第二',
+  'Ⅰ歴': '歴代誌 第一', 'Ⅱ歴': '歴代誌 第二',
+  'I歴': '歴代誌 第一', 'II歴': '歴代誌 第二',
+  '1歴': '歴代誌 第一', '2歴': '歴代誌 第二',
+  '歴代誌 第一': '歴代誌 第一', '歴代誌 第二': '歴代誌 第二',
+  '歴代誌第一': '歴代誌 第一', '歴代誌第二': '歴代誌 第二',
+  'エズ': 'エズラ記', 'エズラ記': 'エズラ記',
+  'ネヘ': 'ネヘミヤ記', 'ネヘミヤ記': 'ネヘミヤ記',
+  'エス': 'エステル記', 'エステル記': 'エステル記',
+
+  // 旧約聖書（詩歌・知恵）
+  'ヨブ': 'ヨブ記', 'ヨブ記': 'ヨブ記',
+  '詩': '詩篇', '詩篇': '詩篇',
+  '箴': '箴言', '箴言': '箴言',
+  '伝道者': '伝道者の書', '伝道者の書': '伝道者の書',
+  '雅': '雅歌', '雅歌': '雅歌',
+
+  // 旧約聖書（預言書）
+  'イザ': 'イザヤ書', 'イザヤ書': 'イザヤ書',
+  'エレ': 'エレミヤ書', 'エレミヤ書': 'エレミヤ書',
+  '哀': '哀歌', '哀歌': '哀歌',
+  'エゼ': 'エゼキエル書', 'エゼキエル書': 'エゼキエル書',
+  'ダニ': 'ダニエル書', 'ダニエル書': 'ダニエル書',
+  'ホセ': 'ホセア書', 'ホセア書': 'ホセア書',
+  'ヨエ': 'ヨエル書', 'ヨエル書': 'ヨエル書',
+  'アモ': 'アモス書', 'アモス書': 'アモス書',
+  'オバ': 'オバデヤ書', 'オバデヤ書': 'オバデヤ書',
+  'ヨナ': 'ヨナ書', 'ヨナ書': 'ヨナ書',
+  'ミカ': 'ミカ書', 'ミカ書': 'ミカ書',
+  'ナホ': 'ナホム書', 'ナホム書': 'ナホム書',
+  'ハバ': 'ハバクク書', 'ハバクク書': 'ハバクク書',
+  'ゼパ': 'ゼパニヤ書', 'ゼパニヤ書': 'ゼパニヤ書',
+  'ハガ': 'ハガイ書', 'ハガイ書': 'ハガイ書',
+  'ゼカ': 'ゼカリヤ書', 'ゼカリヤ書': 'ゼカリヤ書',
+  'マラ': 'マラキ書', 'マラキ書': 'マラキ書',
 
   // 新約聖書
-  'マタ': 'マタイの福音書',
-  'マル': 'マルコの福音書',
-  'ルカ': 'ルカの福音書',
-  'ヨハ': 'ヨハネの福音書',
-  '使徒': '使徒の働き',
-  'ロマ': 'ローマ人への手紙',
-  'Ⅰコリ': 'コリント人への手紙 第一',
-  'Ⅱコリ': 'コリント人への手紙 第二',
-  'ガラ': 'ガラテヤ人への手紙',
-  'エペ': 'エペソ人への手紙',
-  'ピリ': 'ピリピ人への手紙',
-  'コロ': 'コロサイ人への手紙',
-  'Ⅰテサ': 'テサロニケ人への手紙 第一',
-  'Ⅱテサ': 'テサロニケ人への手紙 第二',
-  'Ⅰテモ': 'テモテへの手紙 第一',
-  'Ⅱテモ': 'テモテへの手紙 第二',
-  'テト': 'テトスへの手紙',
-  'フィ': 'フィレモンへの手紙',
-  'ヘブ': 'ヘブル人への手紙',
-  'ヤコ': 'ヤコブの手紙',
-  'Ⅰペテ': 'ペテロの手紙 第一',
-  'Ⅱペテ': 'ペテロの手紙 第二',
-  'Ⅰヨハ': 'ヨハネの手紙 第一',
-  'Ⅱヨハ': 'ヨハネの手紙 第二',
-  'Ⅲヨハ': 'ヨハネの手紙 第三',
-  'ユダ': 'ユダの手紙',
-  '黙示': 'ヨハネの黙示録'
+  'マタ': 'マタイの福音書', 'マタイ': 'マタイの福音書', 'マタイの福音書': 'マタイの福音書',
+  'マル': 'マルコの福音書', 'マルコ': 'マルコの福音書', 'マルコの福音書': 'マルコの福音書',
+  'ルカ': 'ルカの福音書', 'ルカの福音書': 'ルカの福音書',
+  'ヨハ': 'ヨハネの福音書', 'ヨハネ': 'ヨハネの福音書', 'ヨハネの福音書': 'ヨハネの福音書',
+  '使徒': '使徒の働き', '使徒の働き': '使徒の働き',
+  'ロマ': 'ローマ人への手紙', 'ローマ': 'ローマ人への手紙', 'ローマ人への手紙': 'ローマ人への手紙',
+  'Ⅰコリ': 'コリント人への手紙 第一', 'Ⅱコリ': 'コリント人への手紙 第二',
+  'Iコリ': 'コリント人への手紙 第一', 'IIコリ': 'コリント人への手紙 第二',
+  '1コリ': 'コリント人への手紙 第一', '2コリ': 'コリント人への手紙 第二',
+  'コリント人への手紙 第一': 'コリント人への手紙 第一', 'コリント人への手紙 第二': 'コリント人への手紙 第二',
+  'ガラ': 'ガラテヤ人への手紙', 'ガラテヤ': 'ガラテヤ人への手紙', 'ガラテヤ人への手紙': 'ガラテヤ人への手紙',
+  'エペ': 'エペソ人への手紙', 'エペソ': 'エペソ人への手紙', 'エペソ人への手紙': 'エペソ人への手紙',
+  'ピリ': 'ピリピ人への手紙', 'ピリピ': 'ピリピ人への手紙', 'ピリピ人への手紙': 'ピリピ人への手紙',
+  'コロ': 'コロサイ人への手紙', 'コロサイ': 'コロサイ人への手紙', 'コロサイ人への手紙': 'コロサイ人への手紙',
+  'Ⅰテサ': 'テサロニケ人への手紙 第一', 'Ⅱテサ': 'テサロニケ人への手紙 第二',
+  'Iテサ': 'テサロニケ人への手紙 第一', 'IIテサ': 'テサロニケ人への手紙 第二',
+  '1テサ': 'テサロニケ人への手紙 第一', '2テサ': 'テサロニケ人への手紙 第二',
+  'テサロニケ人への手紙 第一': 'テサロニケ人への手紙 第一', 'テサロニケ人への手紙 第二': 'テサロニケ人への手紙 第二',
+  'Ⅰテモ': 'テモテへの手紙 第一', 'Ⅱテモ': 'テモテへの手紙 第二',
+  'Iテモ': 'テモテへの手紙 第一', 'IIテモ': 'テモテへの手紙 第二',
+  '1テモ': 'テモテへの手紙 第一', '2テモ': 'テモテへの手紙 第二',
+  'テモテへの手紙 第一': 'テモテへの手紙 第一', 'テモテへの手紙 第二': 'テモテへの手紙 第二',
+  'テト': 'テトスへの手紙', 'テトス': 'テトスへの手紙', 'テトスへの手紙': 'テトスへの手紙',
+  'フィ': 'フィレモンへの手紙', 'フィレモン': 'フィレモンへの手紙', 'フィレモンへの手紙': 'フィレモンへの手紙',
+  'ヘブ': 'ヘブル人への手紙', 'ヘブル': 'ヘブル人への手紙', 'ヘブル人への手紙': 'ヘブル人への手紙',
+  'ヤコ': 'ヤコブの手紙', 'ヤコブ': 'ヤコブの手紙', 'ヤコブの手紙': 'ヤコブの手紙',
+  'Ⅰペテ': 'ペテロの手紙 第一', 'Ⅱペテ': 'ペテロの手紙 第二',
+  'Iペテ': 'ペテロの手紙 第一', 'IIペテ': 'ペテロの手紙 第二',
+  '1ペテ': 'ペテロの手紙 第一', '2ペテ': 'ペテロの手紙 第二',
+  'ペテロの手紙 第一': 'ペテロの手紙 第一', 'ペテロの手紙 第二': 'ペテロの手紙 第二',
+  'Ⅰヨハ': 'ヨハネの手紙 第一', 'Ⅱヨハ': 'ヨハネの手紙 第二', 'Ⅲヨハ': 'ヨハネの手紙 第三',
+  'Iヨハ': 'ヨハネの手紙 第一', 'IIヨハ': 'ヨハネの手紙 第二', 'IIIヨハ': 'ヨハネの手紙 第三',
+  '1ヨハ': 'ヨハネの手紙 第一', '2ヨハ': 'ヨハネの手紙 第二', '3ヨハ': 'ヨハネの手紙 第三',
+  'ヨハネの手紙 第一': 'ヨハネの手紙 第一', 'ヨハネの手紙 第二': 'ヨハネの手紙 第二', 'ヨハネの手紙 第三': 'ヨハネの手紙 第三',
+  'ユダ': 'ユダの手紙', 'ユダの手紙': 'ユダの手紙',
+  '黙示': 'ヨハネの黙示録', '黙示録': 'ヨハネの黙示録', 'ヨハネの黙示録': 'ヨハネの黙示録',
 };
+
+// ─── 正統な聖書66巻のジャンル分類 ──────────────────────────────────────
+const POETRY_BOOKS = new Set(['ヨブ記', '詩篇', '箴言', '伝道者の書', '雅歌']);
+
+const PROPHET_BOOKS = new Set([
+  'イザヤ書', 'エレミヤ書', '哀歌', 'エゼキエル書', 'ダニエル書',
+  'ホセア書', 'ヨエル書', 'アモス書', 'オバデヤ書', 'ヨナ書',
+  'ミカ書', 'ナホム書', 'ハバクク書', 'ゼパニヤ書', 'ハガイ書',
+  'ゼカリヤ書', 'マラキ書'
+]);
+
+const NT_BOOKS = new Set([
+  'マタイの福音書', 'マルコの福音書', 'ルカの福音書', 'ヨハネの福音書', '使徒の働き',
+  'ローマ人への手紙', 'コリント人への手紙 第一', 'コリント人への手紙 第二',
+  'ガラテヤ人への手紙', 'エペソ人への手紙', 'ピリピ人への手紙', 'コロサイ人への手紙',
+  'テサロニケ人への手紙 第一', 'テサロニケ人への手紙 第二',
+  'テモテへの手紙 第一', 'テモテへの手紙 第二', 'テトスへの手紙', 'フィレモンへの手紙',
+  'ヘブル人への手紙', 'ヤコブの手紙', 'ペテロの手紙 第一', 'ペテロの手紙 第二',
+  'ヨハネの手紙 第一', 'ヨハネの手紙 第二', 'ヨハネの手紙 第三', 'ユダの手紙', 'ヨハネの黙示録'
+]);
+
+export interface CategoryStyle {
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+  badge: string;
+}
+
+export function getBookCategory(bookName: string): CategoryStyle {
+  const normalized = normalizeBookName(bookName);
+
+  if (NT_BOOKS.has(normalized)) {
+    return {
+      label: '新約聖書',
+      color: 'text-emerald-800 dark:text-emerald-300',
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/20',
+      badge: '🌿',
+    };
+  }
+
+  if (POETRY_BOOKS.has(normalized)) {
+    return {
+      label: '詩歌・知恵',
+      color: 'text-rose-700 dark:text-rose-300',
+      bg: 'bg-rose-500/10',
+      border: 'border-rose-500/20',
+      badge: '🌹',
+    };
+  }
+
+  if (PROPHET_BOOKS.has(normalized)) {
+    return {
+      label: '預言書',
+      color: 'text-purple-800 dark:text-purple-300',
+      bg: 'bg-purple-500/10',
+      border: 'border-purple-500/20',
+      badge: '📜',
+    };
+  }
+
+  // デフォルトは旧約聖書（律法・歴史）
+  return {
+    label: '旧約聖書',
+    color: 'text-amber-800 dark:text-amber-300',
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/20',
+    badge: '🏛️',
+  };
+}
+
+export function normalizeBookName(rawBook: string): string {
+  const trimmed = rawBook.trim();
+  if (BIBLE_BOOK_MAP[trimmed]) {
+    return BIBLE_BOOK_MAP[trimmed];
+  }
+
+  // プレフィックス正規化（例: 1コリ -> Iコリ / コリント人への手紙 第一）
+  const match = trimmed.match(/^([1-3Ⅰ-ⅢI-V\s]*[^\d\s,:-]+)/);
+  if (match) {
+    const key = match[1].trim();
+    if (BIBLE_BOOK_MAP[key]) {
+      return BIBLE_BOOK_MAP[key];
+    }
+  }
+
+  return trimmed;
+}
 
 function formatPassage(passageStr: string): string {
   let p = passageStr.trim();
   if (!p) return '';
   if (p.includes('章')) return p;
   
-  // ハイフンを波線に変換
   p = p.replace(/-/g, '〜');
-  
-  // 数値部分に「章」を補完する
-  // 例: "1〜2" -> "1〜2章"
-  // 例: "1" -> "1章"
-  // 例: "56, 57" -> "56, 57章"
   return p + '章';
 }
 
@@ -204,7 +308,6 @@ async function parseExcel(file: File): Promise<ReadingEntry[]> {
   });
   if (dateCol === -1) dateCol = 0;
 
-  // Convert Excel serial dates
   const converted = rows.map(row => {
     const newRow = [...row].map(val => (val === undefined || val === null) ? '' : String(val));
     const rawDate = row[dateCol];
@@ -241,7 +344,6 @@ function buildEntries(rows: string[][], year: number): ReadingEntry[] {
   const entries: ReadingEntry[] = [];
 
   if (isVertical) {
-    // 縦型フォーマット (日付, 書名, 章節)
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (!row || row.length < 2) continue;
@@ -259,7 +361,7 @@ function buildEntries(rows: string[][], year: number): ReadingEntry[] {
       const idx = dateCounters[isoDate] ?? 0;
       dateCounters[isoDate] = idx + 1;
 
-      const mappedBook = BIBLE_BOOK_MAP[book] || book;
+      const mappedBook = normalizeBookName(book);
       const formattedPassage = formatPassage(passage);
 
       entries.push({
@@ -271,7 +373,6 @@ function buildEntries(rows: string[][], year: number): ReadingEntry[] {
       });
     }
   } else {
-    // 横型複数列フォーマット (日付, 旧約1, 完了, 旧約2, 完了, 詩, 新約 ...)
     const readingCols: number[] = [];
     const excludeHeaders = ['日付', 'date', '列', '完了', '曜日', 'day', 'week'];
     
@@ -298,11 +399,10 @@ function buildEntries(rows: string[][], year: number): ReadingEntry[] {
 
       for (const colIdx of readingCols) {
         const cellVal = (row[colIdx] || '').trim();
-        // 不要な値はスキップ
         if (!cellVal || cellVal === '-' || cellVal === '#VALUE!') continue;
 
-        // "創 1-2" のようにスペース区切りで入っているものをパース
-        const match = cellVal.match(/^([^\d\s]+)\s*(.+)$/);
+        // プレフィックス（Iコリ, 1コリ, 創, エレ 等）と章節（10, 1-2 等）を確実にパース
+        const match = cellVal.match(/^([1-3Ⅰ-ⅢI-V\s]*[^\d\s,:-]+)\s*(.*)$/);
         let bookName = cellVal;
         let passageVal = '';
         if (match) {
@@ -310,7 +410,7 @@ function buildEntries(rows: string[][], year: number): ReadingEntry[] {
           passageVal = match[2].trim();
         }
 
-        const mappedBook = BIBLE_BOOK_MAP[bookName] || bookName;
+        const mappedBook = normalizeBookName(bookName);
         const formattedPassage = formatPassage(passageVal);
 
         const idx = dateCounters[isoDate] ?? 0;
@@ -346,7 +446,25 @@ export function saveSchedule(entries: ReadingEntry[]): void {
 export function loadSchedule(): ReadingEntry[] | null {
   const raw = localStorage.getItem(STORAGE_KEY_SCHEDULE);
   if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
+  try {
+    const list: ReadingEntry[] = JSON.parse(raw);
+    // 自動マイグレーション（古い略称表記が残っていれば正式名称に更新）
+    let changed = false;
+    const migrated = list.map(entry => {
+      const normalized = normalizeBookName(entry.book);
+      if (normalized !== entry.book) {
+        changed = true;
+        return { ...entry, book: normalized };
+      }
+      return entry;
+    });
+    if (changed) {
+      saveSchedule(migrated);
+    }
+    return migrated;
+  } catch {
+    return null;
+  }
 }
 
 export function clearSchedule(): void {
@@ -399,7 +517,11 @@ export function getDayGroup(schedule: ReadingEntry[], date: string): DayGroup | 
   const dayEntries = schedule.filter(e => e.date === date);
   if (dayEntries.length === 0) return null;
 
-  const withStatus = dayEntries.map(e => ({ ...e, completed: completed.has(e.id) }));
+  const withStatus = dayEntries.map(e => ({
+    ...e,
+    book: normalizeBookName(e.book),
+    completed: completed.has(e.id)
+  }));
   const completedCount = withStatus.filter(e => e.completed).length;
 
   return {
@@ -595,7 +717,6 @@ const INSPIRATIONAL_VERSES: InspirationalVerse[] = [
 
 export function getDailyInspirationalVerse(dateStr?: string): InspirationalVerse {
   const d = dateStr ? new Date(dateStr) : new Date();
-  // 日付の合計値から決定論的にインデックスを決定
   const dayOfYear = Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
   const index = Math.abs(dayOfYear) % INSPIRATIONAL_VERSES.length;
   return INSPIRATIONAL_VERSES[index];
@@ -604,7 +725,6 @@ export function getDailyInspirationalVerse(dateStr?: string): InspirationalVerse
 // ─── Estimated Read Time ────────────────────────────────────────────
 export function getEstimatedMinutes(passageCount: number): number {
   if (passageCount <= 0) return 0;
-  // 1箇所あたり約2〜3分
   return Math.max(3, passageCount * 3);
 }
 
@@ -622,9 +742,8 @@ export interface WeekDayStatus {
 export function getWeeklyStatus(schedule: ReadingEntry[]): WeekDayStatus[] {
   const today = new Date();
   const todayStr = toISODate(today);
-  const currentDayOfWeek = today.getDay(); // 0: Sun, 1: Mon, ...
+  const currentDayOfWeek = today.getDay();
 
-  // 今週の月曜日の日付を特定
   const mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
   const monday = new Date(today);
   monday.setDate(today.getDate() + mondayOffset);
@@ -656,4 +775,3 @@ export function getWeeklyStatus(schedule: ReadingEntry[]): WeekDayStatus[] {
 
   return weekDays;
 }
-

@@ -9,6 +9,7 @@ import {
   toggleCompleted,
   isCompleted,
   getTodayISO,
+  normalizeBookName,
 } from '@/lib/scheduleEngine';
 
 interface ScheduleListProps {
@@ -252,8 +253,8 @@ export function ScheduleList({ onStatusChange }: ScheduleListProps) {
                           >
                             {completed && <Check className="w-3 h-3 stroke-[3]" />}
                           </div>
-                          <span className="text-xs font-bible font-bold truncate">{reading.book}</span>
-                          <span className={`text-xs font-bible ${completed ? 'text-muted-foreground/50' : 'text-primary'}`}>
+                          <span className="text-xs font-bible font-bold truncate">{normalizeBookName(reading.book)}</span>
+                          <span className={`text-xs font-bible ${completed ? 'text-muted-foreground/50' : 'text-primary font-medium'}`}>
                             {reading.passage}
                           </span>
                         </div>

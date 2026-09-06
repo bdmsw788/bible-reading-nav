@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Check, Sparkles, Clock, Compass, Heart } from 'lucide-react';
-import { DayGroup } from '@/types/schedule';
+import { BookOpen, Check, Sparkles, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { DayGroup, ReadingEntry } from '@/types/schedule';
 import {
   formatDateJapanese,
   toggleCompleted,
   getDailyInspirationalVerse,
   getEstimatedMinutes,
+  getBookCategory,
+  normalizeBookName,
 } from '@/lib/scheduleEngine';
 import { Confetti } from '@/components/Confetti';
 
@@ -24,6 +26,10 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
   // Inspirational verse of the day
   const inspirationalVerse = getDailyInspirationalVerse(dayGroup.date);
   const estimatedMin = getEstimatedMinutes(dayGroup.totalCount);
+
+  // Remaining readings
+  const uncompletedReadings = dayGroup.readings.filter(r => !r.completed);
+  const remainingCount = uncompletedReadings.length;
 
   // Celebration & Confetti when all done
   useEffect(() => {
@@ -46,10 +52,10 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
 
       {/* ─── Sunrise Inspirational Verse Card ───────────────────── */}
       <div className="sunrise-card p-4 sm:p-5 relative animate-fadeIn">
-        <div className="flex items-center gap-2 mb-2 text-amber-500 font-semibold text-xs tracking-wider uppercase">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2 mb-1.5 text-amber-700 dark:text-amber-400 font-semibold text-xs tracking-wider uppercase">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
           <span>今日のみことば</span>
-          <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-normal">
+          <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-normal">
             {inspirationalVerse.theme}
           </span>
         </div>
@@ -60,6 +66,41 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
           — {inspirationalVerse.reference}
         </p>
       </div>
+
+      {/* ─── 未読・残りの案内バナー（リマインダー） ─────────────── */}
+      {!dayGroup.allCompleted && remainingCount > 0 && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 text-foreground flex items-start gap-3 shadow-sm animate-fadeIn">
+          <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h4 className="font-bold text-sm text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                <span>まだ今日の通読箇所が残っています</span>
+              </h4>
+              <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-500 text-white shadow-sm">
+                あと {remainingCount} 箇所
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              未読：<span className="font-bible font-bold text-amber-900 dark:text-amber-200">
+                {uncompletedReadings.map(r => `${normalizeBookName(r.book)} ${r.passage}`).join('、 ')}
+              </span>
+            </p>
+            <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80 mt-1 font-medium">
+              📖 読了したら下のカードをタップしてチェックを付けましょう！
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ─── 全完了の案内バナー ─────────────────────────────────── */}
+      {dayGroup.allCompleted && (
+        <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-2 animate-fadeIn shadow-sm">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          <span>今日の通読箇所はすべて完了しています！素晴らしい継続です✨</span>
+        </div>
+      )}
 
       {/* ─── Header & Progress Status ───────────────────────────── */}
       <div className="glass-card p-4 space-y-3">
@@ -73,7 +114,7 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
           </div>
 
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-xs text-muted-foreground">
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <Clock className="w-3.5 h-3.5 text-amber-500" />
             <span>約{estimatedMin}分で読了</span>
           </div>
         </div>
@@ -83,12 +124,12 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-muted-foreground">
               {dayGroup.allCompleted ? (
-                <span className="text-emerald-500 font-bold flex items-center gap-1">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
                   <Check className="w-3.5 h-3.5" /> 本日のノルマ達成！
                 </span>
               ) : (
                 <span>
-                  あと <strong className="text-amber-500">{dayGroup.totalCount - dayGroup.completedCount}箇所</strong> で達成！
+                  あと <strong className="text-amber-600 dark:text-amber-400">{remainingCount}箇所</strong> で達成！
                 </span>
               )}
             </span>
@@ -110,11 +151,11 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
       {showCelebration && (
         <div className="celebration-banner animate-fadeIn p-4 border border-amber-500/30 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-emerald-500/20 text-center shadow-lg">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <Sparkles className="w-5 h-5 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
-            <span className="text-base font-bold text-amber-300">
+            <Sparkles className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />
+            <span className="text-base font-bold text-amber-700 dark:text-amber-300">
               🎉 今日の通読コンプリート！
             </span>
-            <Sparkles className="w-5 h-5 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
+            <Sparkles className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />
           </div>
           <p className="text-xs text-foreground/80 mt-1">
             神様のみことばを心に蓄えました。素晴らしい1歩です！✨
@@ -128,7 +169,7 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
           <ReadingCard
             key={reading.id}
             id={reading.id}
-            book={reading.book}
+            book={normalizeBookName(reading.book)}
             passage={reading.passage}
             initialCompleted={reading.completed}
             index={index}
@@ -139,20 +180,6 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
       </div>
     </div>
   );
-}
-
-// ─── Reading Category Classifier ──────────────────────────────────────
-function getCategoryInfo(book: string, index: number) {
-  if (book.includes('詩篇') || book.includes('箴言') || book.includes('伝道者') || book.includes('雅歌') || book.includes('ヨブ')) {
-    return { label: '詩歌・知恵', color: 'text-rose-700 dark:text-rose-300', bg: 'bg-rose-500/10', border: 'border-rose-500/20', badge: '🌹' };
-  }
-  if (book.includes('福音書') || book.includes('マタイ') || book.includes('マルコ') || book.includes('ルカ') || book.includes('ヨハネ') || book.includes('使徒') || book.includes('手紙') || book.includes('黙示') || book.includes('ロマ') || book.includes('コリント') || book.includes('ガラテヤ') || book.includes('エペソ') || book.includes('ピリピ') || book.includes('コロサイ') || book.includes('テサロニケ') || book.includes('テモテ') || book.includes('テトス') || book.includes('フィレモン') || book.includes('ヘブル') || book.includes('ヤコブ') || book.includes('ペテロ') || book.includes('ユダ')) {
-    return { label: '新約聖書', color: 'text-emerald-800 dark:text-emerald-300', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', badge: '🌿' };
-  }
-  if (book.includes('イザヤ') || book.includes('エレミヤ') || book.includes('エゼキエル') || book.includes('ダニエル') || book.includes('ホセア') || book.includes('ヨエル') || book.includes('アモス') || book.includes('オバデヤ') || book.includes('ヨナ') || book.includes('ミカ') || book.includes('ナホム') || book.includes('ハバクク') || book.includes('ゼパニヤ') || book.includes('ハガイ') || book.includes('ゼカリヤ') || book.includes('マラキ')) {
-    return { label: '預言書', color: 'text-purple-800 dark:text-purple-300', bg: 'bg-purple-500/10', border: 'border-purple-500/20', badge: '📜' };
-  }
-  return { label: '旧約聖書', color: 'text-amber-800 dark:text-amber-300', bg: 'bg-amber-500/10', border: 'border-amber-500/20', badge: '🏛️' };
 }
 
 // ─── Individual Reading Card ──────────────────────────────────────────
@@ -174,7 +201,8 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
     setCompleted(initialCompleted);
   }, [initialCompleted]);
 
-  const cat = getCategoryInfo(book, index);
+  // 正確な聖書ジャンル分類を取得（旧約・詩歌・預言書・新約）
+  const cat = getBookCategory(book);
 
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -196,23 +224,23 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleToggle(e as unknown as React.MouseEvent); }}
       className={`reading-card-btn group cursor-pointer transition-all duration-300 ${
         completed
-          ? 'completed bg-secondary/30 border-border/40 opacity-75'
-          : 'bg-card/80 hover:bg-card border-border hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5'
+          ? 'completed bg-secondary/50 border-border/50 opacity-75'
+          : 'bg-card hover:bg-card border-border hover:border-amber-500/50 hover:shadow-md'
       } ${animating ? 'animate-checkPulse' : ''}`}
       id={`reading-${id}`}
       aria-label={`${book} ${passage} ${completed ? '読了済み' : '未読'}`}
     >
       {/* Accent Indicator */}
       <div
-        className={`reading-card-accent ${completed ? 'done bg-emerald-500' : 'bg-amber-500'}`}
+        className={`reading-card-accent ${completed ? 'done bg-emerald-500' : 'bg-primary'}`}
       />
 
       {/* Checkbox with bounce */}
       <div
         className={`reading-checkbox transition-all duration-300 ${
           completed
-            ? 'checked bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/30 scale-105'
-            : 'border-muted-foreground/30 group-hover:border-amber-500/70 group-hover:bg-amber-500/10'
+            ? 'checked bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/30 scale-105'
+            : 'border-muted-foreground/40 group-hover:border-primary group-hover:bg-primary/10'
         }`}
       >
         {completed && <Check className="w-4 h-4 stroke-[3]" />}
@@ -236,7 +264,7 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
 
         <p
           className={`font-bible text-sm mt-0.5 font-medium tracking-wide transition-all duration-300 ${
-            completed ? 'text-muted-foreground/40' : 'text-primary'
+            completed ? 'text-muted-foreground/40' : 'text-primary font-bold'
           }`}
         >
           {passage}
@@ -246,11 +274,11 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
       {/* Status Badge */}
       <div className="shrink-0">
         {completed ? (
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full animate-fadeIn">
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full animate-fadeIn">
             <Check className="w-3.5 h-3.5" /> 読了
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground/50 group-hover:text-amber-400 transition-colors">
+          <span className="text-xs text-muted-foreground/60 group-hover:text-primary transition-colors font-medium">
             タップで完了
           </span>
         )}
