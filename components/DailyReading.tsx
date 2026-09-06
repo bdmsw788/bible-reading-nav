@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Check, Sparkles, Clock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { BookOpen, Check, Sparkles, Clock, AlertCircle, CheckCircle2, BookMarked, ChevronDown, ChevronUp } from 'lucide-react';
 import { DayGroup, ReadingEntry } from '@/types/schedule';
 import {
   formatDateJapanese,
@@ -10,6 +10,8 @@ import {
   getEstimatedMinutes,
   getBookCategory,
   normalizeBookName,
+  getPastUncompletedEntries,
+  loadSchedule,
 } from '@/lib/scheduleEngine';
 import { Confetti } from '@/components/Confetti';
 
@@ -22,14 +24,19 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
   const todayFormatted = formatDateJapanese(dayGroup.date);
   const [showCelebration, setShowCelebration] = useState(false);
   const [triggerConfetti, setTriggerConfetti] = useState(false);
+  const [showPastList, setShowPastList] = useState(true);
 
   // Inspirational verse of the day
   const inspirationalVerse = getDailyInspirationalVerse(dayGroup.date);
   const estimatedMin = getEstimatedMinutes(dayGroup.totalCount);
 
-  // Remaining readings
+  // Remaining today readings
   const uncompletedReadings = dayGroup.readings.filter(r => !r.completed);
   const remainingCount = uncompletedReadings.length;
+
+  // Past uncompleted readings (たまっている分)
+  const schedule = loadSchedule() || [];
+  const pastEntries = getPastUncompletedEntries(schedule);
 
   // Celebration & Confetti when all done
   useEffect(() => {
@@ -89,9 +96,6 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
               未読：<span className="font-bible font-bold text-amber-900 dark:text-amber-200">
                 {uncompletedReadings.map(r => `${normalizeBookName(r.book)} ${r.passage}`).join('、 ')}
               </span>
-            </p>
-            <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80 mt-1 font-medium">
-              📖 読了したら下のカードをタップしてチェックを付けましょう！
             </p>
           </div>
         </div>
@@ -166,7 +170,7 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
         </div>
       )}
 
-      {/* ─── Reading Cards List ─────────────────────────────────── */}
+      {/* ─── Today Reading Cards List ───────────────────────────── */}
       <div className="space-y-2.5">
         {dayGroup.readings.map((reading, index) => (
           <ReadingCard
@@ -181,6 +185,52 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
           />
         ))}
       </div>
+
+      {/* ─── 過去のたまっている分（控えめな表示 & その場でチェック可能） ─── */}
+      {pastEntries.length > 0 && (
+        <div className="glass-card p-4 space-y-3 mt-6 border-dashed border-amber-500/40 bg-secondary/20 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookMarked className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <h3 className="text-xs font-bold text-foreground">
+                過去の未読分
+              </h3>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300">
+                {pastEntries.length} 箇所
+              </span>
+            </div>
+            <button
+              onClick={() => setShowPastList(!showPastList)}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground font-semibold transition-colors"
+            >
+              <span>{showPastList ? '折りたたむ' : '表示してチェック'}</span>
+              {showPastList ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            焦らなくて大丈夫です。余裕がある時に少しずつ追いつきましょう 🌱
+          </p>
+
+          {showPastList && (
+            <div className="space-y-2 pt-2 border-t border-border/40 max-h-80 overflow-y-auto pr-1">
+              {pastEntries.map((entry, index) => (
+                <ReadingCard
+                  key={entry.id}
+                  id={entry.id}
+                  book={normalizeBookName(entry.book)}
+                  passage={entry.passage}
+                  initialCompleted={false}
+                  index={index}
+                  total={pastEntries.length}
+                  dateLabel={entry.date.replace(/^\d{4}-/, '').replace('-', '/')}
+                  onStatusChange={onStatusChange}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -193,10 +243,11 @@ interface ReadingCardProps {
   initialCompleted: boolean;
   index: number;
   total: number;
+  dateLabel?: string;
   onStatusChange: () => void;
 }
 
-function ReadingCard({ id, book, passage, initialCompleted, index, total, onStatusChange }: ReadingCardProps) {
+function ReadingCard({ id, book, passage, initialCompleted, index, total, dateLabel, onStatusChange }: ReadingCardProps) {
   const [completed, setCompleted] = useState(initialCompleted);
   const [animating, setAnimating] = useState(false);
 
@@ -251,7 +302,12 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {dateLabel && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-secondary font-bold text-muted-foreground">
+              {dateLabel}
+            </span>
+          )}
           <span className={`text-[11px] px-2 py-0.5 rounded-md font-semibold border ${cat.bg} ${cat.color} ${cat.border} flex items-center gap-1`}>
             <span>{cat.badge}</span>
             <span>{cat.label}</span>
@@ -274,18 +330,14 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
         </p>
       </div>
 
-      {/* Status Badge */}
-      <div className="shrink-0">
-        {completed ? (
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full animate-fadeIn">
+      {/* Completed indicator only (No "タップで完了") */}
+      {completed && (
+        <div className="shrink-0 animate-fadeIn">
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full">
             <Check className="w-3.5 h-3.5" /> 読了
           </span>
-        ) : (
-          <span className="text-xs text-muted-foreground/60 group-hover:text-primary transition-colors font-medium">
-            タップで完了
-          </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

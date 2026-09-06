@@ -775,3 +775,19 @@ export function getWeeklyStatus(schedule: ReadingEntry[]): WeekDayStatus[] {
 
   return weekDays;
 }
+
+// ─── Past Uncompleted Readings Helper ───────────────────────────────
+export function getPastUncompletedEntries(schedule: ReadingEntry[]): ReadingEntry[] {
+  const todayStr = toISODate(new Date());
+  const completed = loadCompleted();
+
+  return schedule
+    .filter(entry => entry.date < todayStr && !completed.has(entry.id))
+    .map(entry => ({
+      ...entry,
+      book: normalizeBookName(entry.book),
+      completed: false,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
