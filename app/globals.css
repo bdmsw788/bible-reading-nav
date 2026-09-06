@@ -333,20 +333,86 @@
 .stagger-children > *:nth-child(4) { animation-delay: 240ms; }
 .stagger-children > *:nth-child(5) { animation-delay: 320ms; }
 
-/* ─── Sunrise & Motivation Visuals (Parchment & Paper) ─────────────── */
+/* ─── Ambient & Card Image Styles ─────────────────────────────────── */
+.ambient-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 480px;
+  background-image: url('/images/bible-bg.jpg');
+  background-size: cover;
+  background-position: center top;
+  opacity: 0.12;
+  mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .ambient-bg {
+  opacity: 0.08;
+}
+
 .sunrise-card {
   position: relative;
   overflow: hidden;
   border-radius: calc(var(--radius) + 4px);
-  background: linear-gradient(135deg, hsl(38 70% 95%) 0%, hsl(42 60% 92%) 100%);
+  background: linear-gradient(135deg, hsl(38 70% 95% / 0.9) 0%, hsl(42 60% 92% / 0.9) 100%);
   border: 1px solid hsl(36 60% 82%);
   box-shadow: 0 4px 20px -2px rgba(160, 110, 40, 0.08), 0 2px 6px -1px rgba(160, 110, 40, 0.04);
 }
 
+.sunrise-card-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/bible-bg.jpg');
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0.14;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
 .dark .sunrise-card {
-  background: linear-gradient(135deg, hsl(28 30% 15%) 0%, hsl(32 25% 12%) 100%);
+  background: linear-gradient(135deg, hsl(28 30% 15% / 0.92) 0%, hsl(32 25% 12% / 0.92) 100%);
   border: 1px solid hsl(38 40% 25%);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.dark .sunrise-card-bg {
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
+
+.rest-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(var(--radius) + 4px);
+  background: linear-gradient(135deg, hsl(90 30% 96% / 0.92) 0%, hsl(40 30% 95% / 0.92) 100%);
+  border: 1px solid hsl(90 25% 82%);
+  box-shadow: 0 4px 20px -2px rgba(80, 120, 50, 0.06);
+}
+
+.rest-card-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/olive-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.dark .rest-card {
+  background: linear-gradient(135deg, hsl(120 20% 12% / 0.92) 0%, hsl(40 15% 10% / 0.92) 100%);
+  border: 1px solid hsl(120 20% 22%);
+}
+
+.dark .rest-card-bg {
+  opacity: 0.15;
+  mix-blend-mode: screen;
 }
 
 .sunrise-card::before {

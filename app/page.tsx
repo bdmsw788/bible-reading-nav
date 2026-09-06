@@ -77,7 +77,10 @@ export default function HomePage() {
     : undefined;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-between relative overflow-hidden">
+      {/* ─── Ambient Bible Image Background ─────────────────────── */}
+      <div className="ambient-bg" />
+
       {/* ─── Top Header ──────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 w-full border-b bg-background/80 backdrop-blur-xl">
         <div className="flex h-14 items-center justify-between px-4 max-w-lg mx-auto">
@@ -104,7 +107,7 @@ export default function HomePage() {
       </header>
 
       {/* ─── Main Content Body ───────────────────────────────────── */}
-      <main className="max-w-lg mx-auto w-full px-4 py-5 pb-28 flex-1">
+      <main className="max-w-lg mx-auto w-full px-4 py-5 pb-28 flex-1 relative z-10">
         {!hasSchedule ? (
           /* ─── Initial Upload Screen ──────────────────────────── */
           <div className="animate-fadeIn">
@@ -131,12 +134,13 @@ export default function HomePage() {
                     onStatusChange={refreshState}
                   />
                 ) : (
-                  <div className="sunrise-card p-6 text-center space-y-3">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
-                      <BookOpen className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold mb-1">今日はお休み・安息のひととき 🌱</h3>
+                  <div className="rest-card p-6 text-center space-y-3 relative">
+                    <div className="rest-card-bg" />
+                    <div className="relative z-10">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mx-auto mb-2.5">
+                        <BookOpen className="w-6 h-6" />
+                      </div>
+                      <h3 className="text-base font-bold mb-1 text-emerald-950 dark:text-emerald-100 font-bible">今日はお休み・安息のひととき 🌱</h3>
                       <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
                         今日はスケジュールが設定されていません。<br />
                         平日の遅れを取り戻す予備日としても、心静かに祈りと感謝をささげる時間としても活用できます。

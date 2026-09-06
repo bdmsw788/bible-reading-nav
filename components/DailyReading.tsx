@@ -52,19 +52,22 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
 
       {/* ─── Sunrise Inspirational Verse Card ───────────────────── */}
       <div className="sunrise-card p-4 sm:p-5 relative animate-fadeIn">
-        <div className="flex items-center gap-2 mb-1.5 text-amber-700 dark:text-amber-400 font-semibold text-xs tracking-wider uppercase">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>今日のみことば</span>
-          <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 font-normal">
-            {inspirationalVerse.theme}
-          </span>
+        <div className="sunrise-card-bg" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-1.5 text-amber-800 dark:text-amber-400 font-semibold text-xs tracking-wider uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>今日のみことば</span>
+            <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-200 font-medium">
+              {inspirationalVerse.theme}
+            </span>
+          </div>
+          <p className="text-base sm:text-lg font-bible font-medium leading-relaxed tracking-wide text-foreground my-2.5">
+            「{inspirationalVerse.verse}」
+          </p>
+          <p className="text-right text-xs font-bible text-muted-foreground font-semibold mt-1">
+            — {inspirationalVerse.reference}
+          </p>
         </div>
-        <p className="text-base sm:text-lg font-bible font-medium leading-relaxed tracking-wide text-foreground my-2.5">
-          「{inspirationalVerse.verse}」
-        </p>
-        <p className="text-right text-xs font-bible text-muted-foreground font-semibold mt-1">
-          — {inspirationalVerse.reference}
-        </p>
       </div>
 
       {/* ─── 未読・残りの案内バナー（リマインダー） ─────────────── */}
