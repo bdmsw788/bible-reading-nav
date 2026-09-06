@@ -53,10 +53,10 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
             {inspirationalVerse.theme}
           </span>
         </div>
-        <p className="text-sm sm:text-base font-medium leading-relaxed tracking-wide text-foreground/90 my-2 italic">
+        <p className="text-base sm:text-lg font-bible font-medium leading-relaxed tracking-wide text-foreground my-2.5">
           「{inspirationalVerse.verse}」
         </p>
-        <p className="text-right text-xs text-muted-foreground font-semibold mt-1">
+        <p className="text-right text-xs font-bible text-muted-foreground font-semibold mt-1">
           — {inspirationalVerse.reference}
         </p>
       </div>
@@ -144,15 +144,15 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
 // ─── Reading Category Classifier ──────────────────────────────────────
 function getCategoryInfo(book: string, index: number) {
   if (book.includes('詩篇') || book.includes('箴言') || book.includes('伝道者') || book.includes('雅歌') || book.includes('ヨブ')) {
-    return { label: '詩歌・知恵', color: 'text-rose-400', bg: 'bg-rose-500/15', border: 'border-rose-500/30', badge: '🌹' };
+    return { label: '詩歌・知恵', color: 'text-rose-700 dark:text-rose-300', bg: 'bg-rose-500/10', border: 'border-rose-500/20', badge: '🌹' };
   }
   if (book.includes('福音書') || book.includes('マタイ') || book.includes('マルコ') || book.includes('ルカ') || book.includes('ヨハネ') || book.includes('使徒') || book.includes('手紙') || book.includes('黙示') || book.includes('ロマ') || book.includes('コリント') || book.includes('ガラテヤ') || book.includes('エペソ') || book.includes('ピリピ') || book.includes('コロサイ') || book.includes('テサロニケ') || book.includes('テモテ') || book.includes('テトス') || book.includes('フィレモン') || book.includes('ヘブル') || book.includes('ヤコブ') || book.includes('ペテロ') || book.includes('ユダ')) {
-    return { label: '新約聖書', color: 'text-emerald-400', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', badge: '🌿' };
+    return { label: '新約聖書', color: 'text-emerald-800 dark:text-emerald-300', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', badge: '🌿' };
   }
   if (book.includes('イザヤ') || book.includes('エレミヤ') || book.includes('エゼキエル') || book.includes('ダニエル') || book.includes('ホセア') || book.includes('ヨエル') || book.includes('アモス') || book.includes('オバデヤ') || book.includes('ヨナ') || book.includes('ミカ') || book.includes('ナホム') || book.includes('ハバクク') || book.includes('ゼパニヤ') || book.includes('ハガイ') || book.includes('ゼカリヤ') || book.includes('マラキ')) {
-    return { label: '預言書', color: 'text-purple-400', bg: 'bg-purple-500/15', border: 'border-purple-500/30', badge: '📜' };
+    return { label: '預言書', color: 'text-purple-800 dark:text-purple-300', bg: 'bg-purple-500/10', border: 'border-purple-500/20', badge: '📜' };
   }
-  return { label: '旧約聖書', color: 'text-blue-400', bg: 'bg-blue-500/15', border: 'border-blue-500/30', badge: '🏛️' };
+  return { label: '旧約聖書', color: 'text-amber-800 dark:text-amber-300', bg: 'bg-amber-500/10', border: 'border-amber-500/20', badge: '🏛️' };
 }
 
 // ─── Individual Reading Card ──────────────────────────────────────────
@@ -226,8 +226,8 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
             <span>{cat.label}</span>
           </span>
           <h3
-            className={`font-bold text-base transition-all duration-300 ${
-              completed ? 'text-muted-foreground/60 line-through' : 'text-foreground'
+            className={`font-bible font-bold text-[17px] tracking-wide transition-all duration-300 ${
+              completed ? 'text-muted-foreground/50 line-through' : 'text-foreground'
             }`}
           >
             {book}
@@ -235,8 +235,8 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
         </div>
 
         <p
-          className={`text-sm mt-1 font-medium tracking-wide transition-all duration-300 ${
-            completed ? 'text-muted-foreground/40' : 'text-amber-500 dark:text-amber-400'
+          className={`font-bible text-sm mt-0.5 font-medium tracking-wide transition-all duration-300 ${
+            completed ? 'text-muted-foreground/40' : 'text-primary'
           }`}
         >
           {passage}

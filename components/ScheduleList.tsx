@@ -252,8 +252,8 @@ export function ScheduleList({ onStatusChange }: ScheduleListProps) {
                           >
                             {completed && <Check className="w-3 h-3 stroke-[3]" />}
                           </div>
-                          <span className="text-xs font-bold truncate">{reading.book}</span>
-                          <span className={`text-xs ${completed ? 'text-muted-foreground/50' : 'text-amber-500 dark:text-amber-400'}`}>
+                          <span className="text-xs font-bible font-bold truncate">{reading.book}</span>
+                          <span className={`text-xs font-bible ${completed ? 'text-muted-foreground/50' : 'text-primary'}`}>
                             {reading.passage}
                           </span>
                         </div>

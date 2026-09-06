@@ -17,15 +17,18 @@ import {
 export default function HomePage() {
   const [appState, setAppState] = useState<AppState | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('today');
 
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem('bible-theme');
-    if (savedTheme === 'light') {
+    if (savedTheme === 'dark') {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    } else {
       setIsDark(false);
-      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
     }
 
     const state = getAppState();
@@ -53,11 +56,11 @@ export default function HomePage() {
     const newDark = !isDark;
     setIsDark(newDark);
     if (newDark) {
-      document.documentElement.classList.remove('light');
+      document.documentElement.classList.add('dark');
       localStorage.setItem('bible-theme', 'dark');
     } else {
-      document.documentElement.classList.add('light');
-      localStorage.setItem('bible-theme', 'light');
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('bible-theme', 'paper');
     }
   };
 

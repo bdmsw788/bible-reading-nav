@@ -54,14 +54,14 @@ export function SettingsView({ isDark, onToggleTheme, onStateRefresh }: Settings
             </div>
             <div>
               <p className="text-sm font-bold">テーマ切り替え</p>
-              <p className="text-xs text-muted-foreground">{isDark ? 'ダークモード' : 'ライトモード'}適用中</p>
+              <p className="text-xs text-muted-foreground">{isDark ? '夜の書斎（ダーク）' : '聖書用紙（温かい紙）'}適用中</p>
             </div>
           </div>
           <button
             onClick={onToggleTheme}
             className="px-3.5 py-1.5 rounded-xl border border-border bg-secondary hover:bg-accent text-xs font-bold transition-all"
           >
-            {isDark ? 'ライトに変更' : 'ダークに変更'}
+            {isDark ? '温かい紙に変更' : '夜の書斎に変更'}
           </button>
         </div>
       </div>
