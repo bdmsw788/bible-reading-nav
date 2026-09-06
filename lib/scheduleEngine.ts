@@ -532,3 +532,128 @@ export function formatDateJapanese(dateStr: string): string {
 export function getTodayISO(): string {
   return toISODate(new Date());
 }
+
+// ─── Daily Inspiration ──────────────────────────────────────────────
+export interface InspirationalVerse {
+  verse: string;
+  reference: string;
+  theme: string;
+}
+
+const INSPIRATIONAL_VERSES: InspirationalVerse[] = [
+  {
+    verse: 'あなたの御言葉は私の足のともしび、私の道の光です。',
+    reference: '詩篇 119篇105節',
+    theme: '道しるべ',
+  },
+  {
+    verse: '強くあれ、雄々しくあれ。恐れてはならない。あなたの神、主があなたとともにおられる。',
+    reference: 'ヨシュア記 1章9節',
+    theme: '勇気と励まし',
+  },
+  {
+    verse: '主を待ち望む者は新しく力を得、鷲のように翼をかって上ることができる。',
+    reference: 'イザヤ書 40章31節',
+    theme: '新たな力',
+  },
+  {
+    verse: '神のことばは生きていて、力があり、両刃の剣よりも鋭く、たましいと霊を刺し通します。',
+    reference: 'ヘブル人への手紙 4章12節',
+    theme: 'みことばの力',
+  },
+  {
+    verse: '疲れた者、重荷を背負っている者は、だれでもわたしのもとに来なさい。休ませてあげよう。',
+    reference: 'マタイの福音書 11章28節',
+    theme: '平安と憩い',
+  },
+  {
+    verse: '人はパンだけで生きるのではなく、神の口から出る一つ一つのことばで生きる。',
+    reference: 'マタイの福音書 4章4節',
+    theme: '霊のいのち',
+  },
+  {
+    verse: 'いつも喜んでいなさい。絶えず祈りなさい。すべてのことについて感謝しなさい。',
+    reference: 'テサロニケ人への手紙 第一 5章16-18節',
+    theme: '日々の喜び',
+  },
+  {
+    verse: 'わたしはぶどうの木、あなたがたはその枝です。人がわたしにとどまるなら、多くの実を結びます。',
+    reference: 'ヨハネの福音書 15章5節',
+    theme: '結びつき',
+  },
+  {
+    verse: '主が私の羊飼い。私には乏しいことがありません。',
+    reference: '詩篇 23篇1節',
+    theme: '満たしと安心',
+  },
+  {
+    verse: '草は枯れ、花は散る。しかし、私たちの神のことばは永遠に立つ。',
+    reference: 'イザヤ書 40章8節',
+    theme: '不変のみことば',
+  },
+];
+
+export function getDailyInspirationalVerse(dateStr?: string): InspirationalVerse {
+  const d = dateStr ? new Date(dateStr) : new Date();
+  // 日付の合計値から決定論的にインデックスを決定
+  const dayOfYear = Math.floor((d.getTime() - new Date(d.getFullYear(), 0, 0).getTime()) / 1000 / 60 / 60 / 24);
+  const index = Math.abs(dayOfYear) % INSPIRATIONAL_VERSES.length;
+  return INSPIRATIONAL_VERSES[index];
+}
+
+// ─── Estimated Read Time ────────────────────────────────────────────
+export function getEstimatedMinutes(passageCount: number): number {
+  if (passageCount <= 0) return 0;
+  // 1箇所あたり約2〜3分
+  return Math.max(3, passageCount * 3);
+}
+
+// ─── Weekly Status Helper ───────────────────────────────────────────
+export interface WeekDayStatus {
+  date: string;
+  dayLabel: string;
+  dayNumber: number;
+  isToday: boolean;
+  isWeekend: boolean;
+  hasReading: boolean;
+  completed: boolean;
+}
+
+export function getWeeklyStatus(schedule: ReadingEntry[]): WeekDayStatus[] {
+  const today = new Date();
+  const todayStr = toISODate(today);
+  const currentDayOfWeek = today.getDay(); // 0: Sun, 1: Mon, ...
+
+  // 今週の月曜日の日付を特定
+  const mondayOffset = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + mondayOffset);
+
+  const completed = loadCompleted();
+  const dayLabels = ['月', '火', '水', '木', '金', '土', '日'];
+  const weekDays: WeekDayStatus[] = [];
+
+  for (let i = 0; i < 7; i++) {
+    const curDate = new Date(monday);
+    curDate.setDate(monday.getDate() + i);
+    const dateStr = toISODate(curDate);
+    const isWeekend = i >= 5;
+
+    const entries = schedule.filter(e => e.date === dateStr);
+    const hasReading = entries.length > 0;
+    const isAllDone = hasReading && entries.every(e => completed.has(e.id));
+
+    weekDays.push({
+      date: dateStr,
+      dayLabel: dayLabels[i],
+      dayNumber: curDate.getDate(),
+      isToday: dateStr === todayStr,
+      isWeekend,
+      hasReading,
+      completed: isAllDone,
+    });
+  }
+
+  return weekDays;
+}
+

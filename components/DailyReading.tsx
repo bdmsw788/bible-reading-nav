@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Check, Sparkles } from 'lucide-react';
+import { BookOpen, Check, Sparkles, Clock, Compass, Heart } from 'lucide-react';
 import { DayGroup } from '@/types/schedule';
 import {
   formatDateJapanese,
   toggleCompleted,
-  isCompleted,
+  getDailyInspirationalVerse,
+  getEstimatedMinutes,
 } from '@/lib/scheduleEngine';
+import { Confetti } from '@/components/Confetti';
 
 interface DailyReadingProps {
   dayGroup: DayGroup;
@@ -17,59 +19,111 @@ interface DailyReadingProps {
 export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
   const todayFormatted = formatDateJapanese(dayGroup.date);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [triggerConfetti, setTriggerConfetti] = useState(false);
 
-  // Celebration when all done
+  // Inspirational verse of the day
+  const inspirationalVerse = getDailyInspirationalVerse(dayGroup.date);
+  const estimatedMin = getEstimatedMinutes(dayGroup.totalCount);
+
+  // Celebration & Confetti when all done
   useEffect(() => {
     if (dayGroup.allCompleted && dayGroup.totalCount > 0) {
       setShowCelebration(true);
-      const timer = setTimeout(() => setShowCelebration(false), 3000);
+      setTriggerConfetti(true);
+      const timer = setTimeout(() => setShowCelebration(false), 5000);
       return () => clearTimeout(timer);
     }
   }, [dayGroup.allCompleted, dayGroup.totalCount]);
 
+  const progressPercent = dayGroup.totalCount > 0
+    ? Math.round((dayGroup.completedCount / dayGroup.totalCount) * 100)
+    : 0;
+
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">📅</span>
+    <div className="space-y-4">
+      {/* Confetti celebration */}
+      <Confetti active={triggerConfetti} onComplete={() => setTriggerConfetti(false)} />
+
+      {/* ─── Sunrise Inspirational Verse Card ───────────────────── */}
+      <div className="sunrise-card p-4 sm:p-5 relative animate-fadeIn">
+        <div className="flex items-center gap-2 mb-2 text-amber-500 font-semibold text-xs tracking-wider uppercase">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>今日のみことば</span>
+          <span className="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-normal">
+            {inspirationalVerse.theme}
+          </span>
+        </div>
+        <p className="text-sm sm:text-base font-medium leading-relaxed tracking-wide text-foreground/90 my-2 italic">
+          「{inspirationalVerse.verse}」
+        </p>
+        <p className="text-right text-xs text-muted-foreground font-semibold mt-1">
+          — {inspirationalVerse.reference}
+        </p>
+      </div>
+
+      {/* ─── Header & Progress Status ───────────────────────────── */}
+      <div className="glass-card p-4 space-y-3">
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold tracking-tight">今日の通読</h2>
-            <p className="text-sm text-muted-foreground">{todayFormatted}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">📖</span>
+              <h2 className="text-lg font-bold tracking-tight">今日の通読箇所</h2>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{todayFormatted}</p>
+          </div>
+
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-xs text-muted-foreground">
+            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <span>約{estimatedMin}分で読了</span>
           </div>
         </div>
 
-        {/* Mini progress indicator */}
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            {dayGroup.readings.map((r, i) => (
-              <div
-                key={r.id}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
-                  r.completed
-                    ? 'bg-emerald-400 scale-110'
-                    : 'bg-secondary border border-border'
-                }`}
-              />
-            ))}
+        {/* Progress Bar with Dots */}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-muted-foreground">
+              {dayGroup.allCompleted ? (
+                <span className="text-emerald-500 font-bold flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> 本日のノルマ達成！
+                </span>
+              ) : (
+                <span>
+                  あと <strong className="text-amber-500">{dayGroup.totalCount - dayGroup.completedCount}箇所</strong> で達成！
+                </span>
+              )}
+            </span>
+            <span className="tabular-nums font-bold text-foreground">
+              {dayGroup.completedCount} / {dayGroup.totalCount} 箇所 ({progressPercent}%)
+            </span>
           </div>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {dayGroup.completedCount}/{dayGroup.totalCount}
-          </span>
+
+          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-500 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Celebration banner */}
+      {/* Celebration Banner */}
       {showCelebration && (
-        <div className="celebration-banner animate-fadeIn">
-          <Sparkles className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-bold text-amber-300">今日の通読コンプリート！</span>
-          <Sparkles className="w-4 h-4 text-amber-400" />
+        <div className="celebration-banner animate-fadeIn p-4 border border-amber-500/30 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-emerald-500/20 text-center shadow-lg">
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Sparkles className="w-5 h-5 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
+            <span className="text-base font-bold text-amber-300">
+              🎉 今日の通読コンプリート！
+            </span>
+            <Sparkles className="w-5 h-5 text-amber-400 animate-spin" style={{ animationDuration: '3s' }} />
+          </div>
+          <p className="text-xs text-foreground/80 mt-1">
+            神様のみことばを心に蓄えました。素晴らしい1歩です！✨
+          </p>
         </div>
       )}
 
-      {/* Reading cards */}
-      <div className="space-y-2">
+      {/* ─── Reading Cards List ─────────────────────────────────── */}
+      <div className="space-y-2.5">
         {dayGroup.readings.map((reading, index) => (
           <ReadingCard
             key={reading.id}
@@ -87,6 +141,20 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
   );
 }
 
+// ─── Reading Category Classifier ──────────────────────────────────────
+function getCategoryInfo(book: string, index: number) {
+  if (book.includes('詩篇') || book.includes('箴言') || book.includes('伝道者') || book.includes('雅歌') || book.includes('ヨブ')) {
+    return { label: '詩歌・知恵', color: 'text-rose-400', bg: 'bg-rose-500/15', border: 'border-rose-500/30', badge: '🌹' };
+  }
+  if (book.includes('福音書') || book.includes('マタイ') || book.includes('マルコ') || book.includes('ルカ') || book.includes('ヨハネ') || book.includes('使徒') || book.includes('手紙') || book.includes('黙示') || book.includes('ロマ') || book.includes('コリント') || book.includes('ガラテヤ') || book.includes('エペソ') || book.includes('ピリピ') || book.includes('コロサイ') || book.includes('テサロニケ') || book.includes('テモテ') || book.includes('テトス') || book.includes('フィレモン') || book.includes('ヘブル') || book.includes('ヤコブ') || book.includes('ペテロ') || book.includes('ユダ')) {
+    return { label: '新約聖書', color: 'text-emerald-400', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', badge: '🌿' };
+  }
+  if (book.includes('イザヤ') || book.includes('エレミヤ') || book.includes('エゼキエル') || book.includes('ダニエル') || book.includes('ホセア') || book.includes('ヨエル') || book.includes('アモス') || book.includes('オバデヤ') || book.includes('ヨナ') || book.includes('ミカ') || book.includes('ナホム') || book.includes('ハバクク') || book.includes('ゼパニヤ') || book.includes('ハガイ') || book.includes('ゼカリヤ') || book.includes('マラキ')) {
+    return { label: '預言書', color: 'text-purple-400', bg: 'bg-purple-500/15', border: 'border-purple-500/30', badge: '📜' };
+  }
+  return { label: '旧約聖書', color: 'text-blue-400', bg: 'bg-blue-500/15', border: 'border-blue-500/30', badge: '🏛️' };
+}
+
 // ─── Individual Reading Card ──────────────────────────────────────────
 interface ReadingCardProps {
   id: string;
@@ -98,26 +166,18 @@ interface ReadingCardProps {
   onStatusChange: () => void;
 }
 
-// Category labels for visual distinction
-const CATEGORY_STYLES = [
-  { label: '旧約', color: 'text-blue-400', bg: 'bg-blue-500/12', border: 'border-blue-500/25' },
-  { label: '新約', color: 'text-emerald-400', bg: 'bg-emerald-500/12', border: 'border-emerald-500/25' },
-  { label: '預言', color: 'text-purple-400', bg: 'bg-purple-500/12', border: 'border-purple-500/25' },
-  { label: '詩歌', color: 'text-rose-400', bg: 'bg-rose-500/12', border: 'border-rose-500/25' },
-];
-
 function ReadingCard({ id, book, passage, initialCompleted, index, total, onStatusChange }: ReadingCardProps) {
   const [completed, setCompleted] = useState(initialCompleted);
   const [animating, setAnimating] = useState(false);
 
-  // Sync with external state changes
   useEffect(() => {
     setCompleted(initialCompleted);
   }, [initialCompleted]);
 
-  const style = CATEGORY_STYLES[index % CATEGORY_STYLES.length];
+  const cat = getCategoryInfo(book, index);
 
-  const handleToggle = () => {
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
     setAnimating(true);
     const newState = toggleCompleted(id);
     setCompleted(newState);
@@ -125,57 +185,76 @@ function ReadingCard({ id, book, passage, initialCompleted, index, total, onStat
     setTimeout(() => {
       setAnimating(false);
       onStatusChange();
-    }, 350);
+    }, 300);
   };
 
   return (
-    <button
+    <div
       onClick={handleToggle}
-      className={`reading-card-btn w-full text-left ${
-        completed ? 'completed' : ''
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleToggle(e as unknown as React.MouseEvent); }}
+      className={`reading-card-btn group cursor-pointer transition-all duration-300 ${
+        completed
+          ? 'completed bg-secondary/30 border-border/40 opacity-75'
+          : 'bg-card/80 hover:bg-card border-border hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5'
       } ${animating ? 'animate-checkPulse' : ''}`}
       id={`reading-${id}`}
       aria-label={`${book} ${passage} ${completed ? '読了済み' : '未読'}`}
     >
-      {/* Left accent bar */}
-      <div className={`reading-card-accent ${completed ? 'done' : ''}`}
-           style={{ '--accent-hue': `${index * 120}deg` } as React.CSSProperties}
+      {/* Accent Indicator */}
+      <div
+        className={`reading-card-accent ${completed ? 'done bg-emerald-500' : 'bg-amber-500'}`}
       />
 
-      {/* Checkbox */}
-      <div className={`reading-checkbox ${completed ? 'checked' : ''}`}>
-        {completed && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+      {/* Checkbox with bounce */}
+      <div
+        className={`reading-checkbox transition-all duration-300 ${
+          completed
+            ? 'checked bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/30 scale-105'
+            : 'border-muted-foreground/30 group-hover:border-amber-500/70 group-hover:bg-amber-500/10'
+        }`}
+      >
+        {completed && <Check className="w-4 h-4 stroke-[3]" />}
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 className={`font-bold text-[15px] transition-all duration-300 ${
-            completed ? 'text-muted-foreground/50 line-through' : 'text-foreground'
-          }`}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-[11px] px-2 py-0.5 rounded-md font-semibold border ${cat.bg} ${cat.color} ${cat.border} flex items-center gap-1`}>
+            <span>{cat.badge}</span>
+            <span>{cat.label}</span>
+          </span>
+          <h3
+            className={`font-bold text-base transition-all duration-300 ${
+              completed ? 'text-muted-foreground/60 line-through' : 'text-foreground'
+            }`}
+          >
             {book}
           </h3>
-          {total > 1 && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${style.bg} ${style.color} ${
-              completed ? 'opacity-40' : ''
-            }`}>
-              {index + 1}/{total}
-            </span>
-          )}
         </div>
-        <p className={`text-sm mt-0.5 transition-all duration-300 ${
-          completed ? 'text-muted-foreground/30' : 'text-muted-foreground'
-        }`}>
+
+        <p
+          className={`text-sm mt-1 font-medium tracking-wide transition-all duration-300 ${
+            completed ? 'text-muted-foreground/40' : 'text-amber-500 dark:text-amber-400'
+          }`}
+        >
           {passage}
         </p>
       </div>
 
-      {/* Done indicator */}
-      {completed && (
-        <span className="text-xs text-emerald-500/60 font-medium shrink-0 animate-fadeIn">
-          読了 ✓
-        </span>
-      )}
-    </button>
+      {/* Status Badge */}
+      <div className="shrink-0">
+        {completed ? (
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full animate-fadeIn">
+            <Check className="w-3.5 h-3.5" /> 読了
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50 group-hover:text-amber-400 transition-colors">
+            タップで完了
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

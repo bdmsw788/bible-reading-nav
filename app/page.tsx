@@ -155,10 +155,17 @@ export default function HomePage() {
                 onStatusChange={refreshState}
               />
             ) : (
-              <div className="glass-card p-8 text-center">
-                <BookOpen className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
-                <h3 className="text-base font-bold mb-1">今日の通読箇所はありません</h3>
-                <p className="text-xs text-muted-foreground">スケジュール上、今日は読む箇所が設定されていません。</p>
+              <div className="sunrise-card p-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center mx-auto">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold mb-1">今日はお休み・安息のひととき 🌱</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                    今日はスケジュールが設定されていません。<br />
+                    平日の遅れを取り戻す予備日としても、心静かに祈りと感謝をささげる時間としても活用できます。
+                  </p>
+                </div>
               </div>
             )}
 
