@@ -48,9 +48,6 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
     }
   }, [dayGroup.allCompleted, dayGroup.totalCount]);
 
-  const progressPercent = dayGroup.totalCount > 0
-    ? Math.round((dayGroup.completedCount / dayGroup.totalCount) * 100)
-    : 0;
 
   return (
     <div className="space-y-4">
@@ -109,8 +106,8 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
         </div>
       )}
 
-      {/* ─── Header & Progress Status ───────────────────────────── */}
-      <div className="glass-card p-4 space-y-3">
+      {/* ─── Header ─────────────────────────────────────────────── */}
+      <div className="glass-card p-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -123,33 +120,6 @@ export function DailyReading({ dayGroup, onStatusChange }: DailyReadingProps) {
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-xs text-muted-foreground">
             <Clock className="w-3.5 h-3.5 text-amber-500" />
             <span>約{estimatedMin}分で読了</span>
-          </div>
-        </div>
-
-        {/* Progress Bar with Dots */}
-        <div className="space-y-1.5 pt-1">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-medium text-muted-foreground">
-              {dayGroup.allCompleted ? (
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                  <Check className="w-3.5 h-3.5" /> 本日のノルマ達成！
-                </span>
-              ) : (
-                <span>
-                  あと <strong className="text-amber-600 dark:text-amber-400">{remainingCount}箇所</strong> で達成！
-                </span>
-              )}
-            </span>
-            <span className="tabular-nums font-bold text-foreground">
-              {dayGroup.completedCount} / {dayGroup.totalCount} 箇所 ({progressPercent}%)
-            </span>
-          </div>
-
-          <div className="h-2 w-full rounded-full bg-secondary overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-500 ease-out"
-              style={{ width: `${progressPercent}%` }}
-            />
           </div>
         </div>
       </div>
